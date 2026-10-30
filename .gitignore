@@ -1,0 +1,22 @@
+node_modules/
+bin/
+logs/
+redis/data/
+redis/redis.conf
+backups/
+gowa/
+*.part
+**/__pycache__/
+*.pyc
+
+# Kredensial tidak boleh masuk repo. .env dibuat otomatis oleh postinstall.js
+# dari .env.example dengan secret acak.
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Database lokal (data pribadi). Skema dibuat ulang oleh migrasi saat start.
+vendor/finapi/*.sqlite3
+vendor/finapi/*.sqlite3-*
+vendor/finapi/*.sqlite

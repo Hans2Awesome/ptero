@@ -1,0 +1,5 @@
+Saya menyewa server panel pterodactyl dengan spek ram 8Gb 4 core, node yang di instal di panel adalah node v22, di console panel tidak bisa memasukan perintah langsung (seperti npm dan lain nya untuk menginstall/mengecek sesuatu) tetapi masih bisa untuk mengirim teks (seperti jika menjalankan bot WhatsApp, console ini bisa saya masukan nomor yang akan menjadi bot/pairing). 
+
+Panel ini memiliki startup command yang tidak bisa di ubah yaitu = if [[ -d .git ]] && [[ {{AUTO_UPDATE}} == "1" ]]; then git pull; fi; if [[ ! -z ${NODE_PACKAGES} ]]; then /usr/local/bin/npm install ${NODE_PACKAGES}; fi; if [[ ! -z ${UNNODE_PACKAGES} ]]; then /usr/local/bin/npm uninstall ${UNNODE_PACKAGES}; fi; if [ -f /home/container/package.json ]; then /usr/local/bin/npm install; fi; if [[ ! -z ${CUSTOM_ENVIRONMENT_VARIABLES} ]]; then vars=$(echo ${CUSTOM_ENVIRONMENT_VARIABLES} | tr ";" "\n"); for line in $vars; do export $line; done fi; /usr/local/bin/${CMD_RUN};
+
+Ada kolom teks command run (bisa di edit, dan default nya yaitu : npm install) yang akan berjalan otomatis ketika server di panel di start. 
