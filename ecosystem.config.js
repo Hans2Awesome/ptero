@@ -146,7 +146,7 @@ module.exports = {
             args: [
               '-m', 'uvicorn', 'backend.app.main:app',
               '--host', process.env.FINAPI_HOST || '127.0.0.1',
-              '--port', String(process.env.FINAPI_PORT || 11600),
+              '--port', String(process.env.FINAPI_PORT || 11011),
               '--proxy-headers',
             ],
             cwd: path.join(__dirname, 'vendor', 'finapi'),

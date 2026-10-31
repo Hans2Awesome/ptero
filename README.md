@@ -104,18 +104,36 @@ Cara kerja:
 3. PM2 menjalankan: `bin/finapi-venv/bin/python -m uvicorn backend.app.main:app`
    dengan `cwd=vendor/finapi` dan `interpreter: 'none'`.
 
-Port default `11600` (internal, `127.0.0.1`). Karena panel hanya memetakan
-`SERVER_PORT`, akses dari luar lewat cloudflared: tambahkan hostname di tunnel
-yang menunjuk `http://127.0.0.1:11600`.
+Port default `11011` (internal, `127.0.0.1`). Tunnel di Cloudflare harus menunjuk
+`http://localhost:11011`. Contoh yang dipakai:
+`api.finindv.nikahbos.web.id -> http://localhost:11011`.
 
-Ganti `SECRET_KEY`, `ENVIRONMENT`, dan `CORS_ORIGINS` di `vendor/finapi/.env`
-sebelum dipakai publik. `ENVIRONMENT=production` mewajibkan `SECRET_KEY` >= 32
-karakter.
+Aplikasi mobile (APK) memakai base URL:
+`https://api.finindv.nikahbos.web.id`
+
+## Token Cloudflare Tunnel
+
+Token disimpan di **root `.env`**, baris `CLOUDFLARE_TOKEN=`. Ingress/hostname
+dikonfigurasi di dashboard Cloudflare (Zero Trust → Networks → Tunnels), bukan
+di file lokal, karena tunnel dijalankan mode token.
+
+Ambil token dari: Zero Trust → Networks → Tunnels → pilih tunnel →
+Configure → bagian install connector (string panjang `eyJ...`).
+
+Catatan:
+- `.env` **tidak** ikut ter-push ke GitHub (gitignore). Token harus diisi manual
+  di panel, atau lewat variabel `CLOUDFLARE_TOKEN` dari panel.
+- `cf-tunnel` hanya jalan kalau `CLOUDFLARE_TOKEN` terisi **dan**
+  `bin/cloudflared` ada (diunduh postinstall.js).
+- Semua hostname tunnel memakai satu token. Kalau `api.finindv.nikahbos.web.id`
+  dibuat di tunnel yang sama dengan `n8n.zieghart.web.id`, cukup satu token.
+
+## Verifikasi finapi
 
 Verifikasi:
 
 ```
-curl http://127.0.0.1:11600/
+curl http://127.0.0.1:11011/
 {"status":"online","app":"Personal Finance API","version":"1.0.0","docs_url":"/docs"}
 ```
 
