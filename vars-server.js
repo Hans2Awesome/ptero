@@ -131,6 +131,7 @@ function activeProcessNames() {
   }
   if (overlay.ENABLE_GOWA === '1') names.push('gowa');
   if (overlay.ENABLE_FINAPI === '1') names.push('finapi');
+  if (overlay.ENABLE_BOT_WA === '1') names.push('bot-wa');
   names.push('vars-ui');
   return names;
 }

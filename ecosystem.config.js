@@ -185,6 +185,28 @@ module.exports = {
         ]
       : []),
 
+    // --- bot WhatsApp (kondisional: ZIP diupload manual ke bot-wa/) ---
+    // Kode bot tidak ada di repo. Aktif hanya jika ENABLE_BOT_WA=1 dan
+    // postinstall sudah mengekstrak ZIP + memasang dependency.
+    ...(process.env.ENABLE_BOT_WA === '1'
+      && require('fs').existsSync(path.join(__dirname, 'bot-wa', 'package.json'))
+      && require('fs').existsSync(path.join(__dirname, 'bot-wa', 'node_modules'))
+      && wants('bot-wa')
+      ? [
+          {
+            name: 'bot-wa',
+            cwd: path.join(__dirname, 'bot-wa'),
+            script: 'index.js',
+            args: '--pairing',
+            ...logCfg('bot-wa'),
+            env,
+            autorestart: true,
+            restart_delay: 5000,
+            max_memory_restart: process.env.BOT_WA_MAX_MEMORY || '900M',
+          },
+        ]
+      : []),
+
     // --- cloudflare tunnel (aktif kalau token + binary ada) ---
     // Token dikirim lewat env TUNNEL_TOKEN, bukan argumen: argumen proses
     // terlihat di `ps` oleh semua user di container.

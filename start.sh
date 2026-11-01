@@ -15,7 +15,7 @@ elif [ -f .env.example ]; then
 fi
 
 mkdir -p logs/n8n-standalone logs/n8n-main logs/n8n-worker logs/n8n-webhook \
-         logs/cf-tunnel logs/vars-ui logs/redis logs/finapi
+         logs/cf-tunnel logs/vars-ui logs/redis logs/finapi logs/bot-wa
 
 ########################################
 # 2) Normalisasi toggle
@@ -59,6 +59,23 @@ fi
 
 export N8N_PORT="${N8N_PORT:-11100}"
 export N8N_WEBHOOK_PORT="${N8N_WEBHOOK_PORT:-11101}"
+
+########################################
+# 2b) Mode pairing bot WhatsApp
+#     PM2 tidak meneruskan stdin, jadi pairing harus jalan langsung
+#     di console panel. Alur: set BOT_WA_PAIR=1 → restart → ketik nomor
+#     → tautkan dari HP → set BOT_WA_PAIR=0 → restart.
+########################################
+if [ "${ENABLE_BOT_WA:-0}" = "1" ] && [ "${BOT_WA_PAIR:-0}" = "1" ]; then
+  if [ ! -f ./bot-wa/package.json ] || [ ! -d ./bot-wa/node_modules ]; then
+    log "[ERR ] BOT_WA_PAIR=1 tapi bot-wa belum siap. Upload ZIP bot ke bot-wa/ lalu jalankan npm install."
+    exit 1
+  fi
+  log "[INFO] Mode pairing: console panel diserahkan ke bot-wa."
+  log "[INFO] Set BOT_WA_PAIR=0 setelah folder bot-wa/session/ berisi creds.json."
+  cd ./bot-wa
+  exec node index.js --pairing
+fi
 
 ########################################
 # 3) Info ringkas
@@ -125,6 +142,15 @@ else
   fi
 fi
 
+# bot-wa butuh hasil ekstrak ZIP + npm install di dalam bot-wa/
+if [ "${ENABLE_BOT_WA:-0}" = "1" ]; then
+  if [ -f ./bot-wa/package.json ] && [ -d ./bot-wa/node_modules ]; then
+    CANDIDATES="$CANDIDATES bot-wa"
+  else
+    log "[WARN] bot-wa diaktifkan tapi belum siap → skip (upload ZIP ke bot-wa/, lalu npm install)"
+  fi
+fi
+
 contains() {
   case " $1 " in *" $2 "*) return 0 ;; *) return 1 ;; esac
 }
@@ -150,6 +176,7 @@ else
       vars-ui)  flag="${ENABLE_VARS:-1}" ;;
       cf-tunnel) flag="${ENABLE_TUNNEL:-1}" ;;
       finapi)   flag="${ENABLE_FINAPI:-0}" ;;
+      bot-wa)   flag="${ENABLE_BOT_WA:-0}" ;;
       *)        flag=1 ;;
     esac
     if [ "$flag" = "1" ]; then

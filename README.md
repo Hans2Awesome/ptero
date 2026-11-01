@@ -12,6 +12,7 @@ Satu container menjalankan beberapa proses lewat PM2. Entry point: `start.sh`.
 | `redis` | Valkey/Redis lokal | `ENABLE_REDIS=1` + `./bin/redis-server` |
 | `vars-ui` | Panel edit `.env` + backup workflow | `ENABLE_VARS=1` |
 | `finapi` | FastAPI backend AppFinanceIndv | `ENABLE_FINAPI=1` + venv |
+| `bot-wa` | Bot WhatsApp (Zapo/Neoxr) | `ENABLE_BOT_WA=1` + ZIP di `bot-wa/` |
 | `cf-tunnel` | Cloudflare Tunnel | `CLOUDFLARE_TOKEN` + `./bin/cloudflared` |
 
 ## Setup di panel
@@ -68,6 +69,7 @@ Jangan pakai seri n8n 1.x: sudah tidak dipatch (CVE-2025-68613).
 | `.env`, `vendor/finapi/.env` | kredensial. Dibuat ulang dari `.env.example` |
 | `vendor/finapi/*.sqlite3` | data pribadi. Skema dibuat ulang oleh migrasi |
 | `bin/`, `logs/`, `node_modules/` | hasil unduhan / runtime |
+| `bot-wa/` | kode bot + secret milik penjual, diupload manual |
 
 Karena `.env` diabaikan, clone baru **wajib** menjalankan `npm install` sekali
 supaya `.env` terbentuk. Kalau punya `.env` lama, upload manual.
@@ -138,6 +140,76 @@ Port default `11011` (internal, `127.0.0.1`). Tunnel di Cloudflare harus menunju
 Aplikasi mobile (APK) memakai base URL:
 `https://api.finindv.nikahbos.web.id`
 
+## Bot WhatsApp (`bot-wa/`)
+
+Kode bot **tidak** ada di repo ini. `bot-wa/` masuk `.gitignore`. Panel harus
+mendapat ZIP-nya secara manual.
+
+### Upload dan aktifkan
+
+1. Upload ZIP bot ke `bot-wa/` di panel, nama bebas, misal
+   `bot-wa/NusantaraProject - 01.zip`.
+2. Set di `.env`:
+
+   ```
+   ENABLE_BOT_WA=1
+   ```
+
+3. Jalankan `npm install` (atau restart server). `postinstall.js` akan:
+   - mengekstrak ZIP ke `bot-wa/` (menolak entry yang keluar folder);
+   - menjalankan `npm install --ignore-scripts` di dalam `bot-wa/`
+     (1124 paket, sekitar 1 GB);
+   - menjalankan `npm rebuild canvas canvacord` untuk modul yang butuh
+     skrip native.
+
+Kalau `bot-wa/` tidak ada, kosong, atau `ENABLE_BOT_WA=0`, semuanya dilewati.
+Tidak ada error, `npm install` tetap selesai normal.
+
+### Pairing sekali (wajib)
+
+PM2 tidak meneruskan `stdin`, jadi pairing tidak bisa lewat PM2. Alurnya:
+
+1. `.env`: `BOT_WA_PAIR=1`, lalu restart server.
+   `start.sh` menyerahkan console panel langsung ke bot.
+2. Console menampilkan `› Nomor WhatsApp:`. Ketik nomor berawalan `62`,
+   misal `6285257129838`. Kode pairing muncul di console.
+3. Tautkan dari HP: WhatsApp → Perangkat tertaut → Tautkan perangkat →
+   Tautkan dengan nomor telepon.
+4. Setelah `bot-wa/session/creds.json` terbentuk, ubah `BOT_WA_PAIR=0`
+   dan restart. Bot sekarang dijalankan PM2 seperti proses lain.
+
+Session tersimpan di `bot-wa/session/` (gitignored, jangan dihapus: menghapus
+artinya pairing ulang).
+
+### Syarat dari pembuat script
+
+- **Node 22** (tertulis di `MIGRASI_ZAPO.md`; `engines` di `bot-wa/package.json`
+  adalah `^22.12.0 || >=24.0.0`). Node 23 di luar range: pakai 22 atau 24.
+- **IP server dan nomor bot harus terdaftar di database penjual.** Dua gate:
+  - L1 saat boot: `start.js` mengambil IP publik lalu memanggil
+    `https://db.apiastra.biz.id/api`. IP tidak terdaftar → bot `exit 1`
+    sebelum pairing.
+  - L2 saat pairing: `function/pairing.js` memverifikasi nomor WhatsApp.
+    Nomor tidak terdaftar → `exit 1`.
+
+  Daftarkan IP panel dan nomor bot ke AstraHost (kontak di script:
+  `085183329477`) sebelum `ENABLE_BOT_WA=1`.
+- Dashboard bot memakai port internal `5000` (hardcoded di `index.js`). Tidak
+  bentrok dengan finapi `11011`, vars `11300`, gowa `11500`.
+- Install dependency bot memakai `--ignore-scripts` lalu `npm rebuild canvas
+  canvacord`. Alasannya: `better-sqlite3@13` tidak punya skrip install sendiri,
+  sehingga npm menjalankan `node-gyp` default dan gagal di container tanpa
+  `make`/`gcc`. Prebuilt N-API `better-sqlite3`, `sharp`, dan `@roamhq/wrtc`
+  sudah ikut di paket, jadi tetap jalan.
+
+### Catatan keamanan
+
+`bot-wa/settings.js` berisi token GitHub, API key Pterodactyl (`ptla_`/`ptlc_`),
+dan belasan API key pihak ketiga. Itu sebabnya folder ini tidak di-push.
+`start.js`, `handler.js`, dan `lib/ai.js` di dalam ZIP juga ter-obfuscate dan
+tidak bisa diaudit. Jangan pakai `run.js` sebagai entry panel: file itu
+menjalankan `spawn('bash')`.
+
 ## Token Cloudflare Tunnel
 
 Token disimpan di **root `.env`**, baris `CLOUDFLARE_TOKEN=`. Ingress/hostname
@@ -177,11 +249,13 @@ curl http://127.0.0.1:11011/
 ```
 start.sh              entry point (POSIX sh)
 env-export.js         parser .env, dipakai start.sh + postinstall.js
-postinstall.js        unduh binari, render redis.conf, siapkan venv finapi
+postinstall.js        unduh binari, render redis.conf, siapkan venv finapi,
+                      ekstrak ZIP bot-wa + npm install kondisional
 ecosystem.config.js   definisi proses PM2
 vars-server.js        API + UI edit .env
 public/index.html     UI vars-ui
 vendor/finapi/        backend FastAPI AppFinanceIndv (vendored)
+bot-wa/               bot WhatsApp, diupload manual (gitignore)
 bin/                  binari hasil unduhan (gitignore)
 logs/                 log per proses
 ```

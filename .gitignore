@@ -9,6 +9,9 @@ gowa/
 **/__pycache__/
 *.pyc
 
+# Bot WhatsApp: kode diupload manual ke panel, tidak masuk repo.
+bot-wa/
+
 # Kredensial tidak boleh masuk repo. .env dibuat otomatis oleh postinstall.js
 # dari .env.example dengan secret acak.
 .env

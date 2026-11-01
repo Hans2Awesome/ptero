@@ -414,6 +414,114 @@ const FINAPI_REQ = path.join(FINAPI_DIR, 'backend', 'requirements.txt');
 const FINAPI_VENV = path.join(BIN_DIR, 'finapi-venv');
 const FINAPI_MARKER = path.join(FINAPI_VENV, '.requirements.sha256');
 
+// ============================================================
+// bot-wa — kode bot TIDAK ada di repo. ZIP diupload manual ke bot-wa/,
+// lalu postinstall mengekstrak dan memasang dependency hanya jika
+// ENABLE_BOT_WA=1. Folder tidak ada = dilewati tanpa error.
+// ============================================================
+const BOT_WA_DIR = path.join(ROOT, 'bot-wa');
+
+function botWaZips() {
+  try {
+    return fs.readdirSync(BOT_WA_DIR)
+      .filter((f) => /\.zip$/i.test(f))
+      .map((f) => path.join(BOT_WA_DIR, f));
+  } catch {
+    return [];
+  }
+}
+
+// Ekstrak ZIP, tolak entry yang keluar dari folder tujuan (zip-slip).
+function extractZipSafe(zipPath, destDir) {
+  let AdmZip;
+  try {
+    AdmZip = require('adm-zip');
+  } catch {
+    throw new Error('adm-zip tidak terpasang (dependency root)');
+  }
+  const zip = new AdmZip(zipPath);
+  const root = path.resolve(destDir);
+  for (const entry of zip.getEntries()) {
+    const target = path.resolve(root, entry.entryName);
+    if (target !== root && !target.startsWith(root + path.sep)) {
+      throw new Error(`entry ZIP keluar folder: ${entry.entryName}`);
+    }
+  }
+  zip.extractAllTo(root, true);
+}
+
+// ZIP kadang membungkus semua file dalam satu folder. Naikkan isinya.
+function hoistSingleSubdir() {
+  if (fs.existsSync(path.join(BOT_WA_DIR, 'package.json'))) return;
+  const entries = fs.readdirSync(BOT_WA_DIR, { withFileTypes: true })
+    .filter((e) => !/\.zip$/i.test(e.name));
+  const dirs = entries.filter((e) => e.isDirectory());
+  if (entries.length !== 1 || dirs.length !== 1) return;
+  const inner = path.join(BOT_WA_DIR, dirs[0].name);
+  if (!fs.existsSync(path.join(inner, 'package.json'))) return;
+  for (const name of fs.readdirSync(inner)) {
+    fs.renameSync(path.join(inner, name), path.join(BOT_WA_DIR, name));
+  }
+  fs.rmdirSync(inner);
+}
+
+function setupBotWa() {
+  if (process.env.ENABLE_BOT_WA !== '1') {
+    log('bot-wa disabled (ENABLE_BOT_WA != 1) — dilewati.');
+    return;
+  }
+  if (!fs.existsSync(BOT_WA_DIR)) {
+    warn('ENABLE_BOT_WA=1 tapi folder bot-wa/ tidak ada — upload ZIP bot ke bot-wa/, lalu jalankan npm install.');
+    return;
+  }
+
+  const pkgPath = path.join(BOT_WA_DIR, 'package.json');
+  if (!fs.existsSync(pkgPath)) {
+    const zips = botWaZips();
+    if (zips.length === 0) {
+      warn('bot-wa/ tidak berisi package.json maupun ZIP — dilewati.');
+      return;
+    }
+    for (const zip of zips) {
+      log(`bot-wa: ekstrak ${path.basename(zip)}…`);
+      extractZipSafe(zip, BOT_WA_DIR);
+    }
+    hoistSingleSubdir();
+  }
+
+  if (!fs.existsSync(pkgPath)) {
+    warn('ZIP bot-wa tidak punya package.json di root — struktur tidak dikenal, dilewati.');
+    return;
+  }
+
+  if (fs.existsSync(path.join(BOT_WA_DIR, 'node_modules'))) {
+    log('bot-wa: dependencies sudah ada.');
+    return;
+  }
+
+  log('bot-wa: memasang dependencies (83 paket, bisa lama)…');
+  // --ignore-scripts: better-sqlite3 13 tidak punya skrip install sendiri, jadi
+  // npm menjalankan node-gyp default (butuh make/gcc). Prebuilt N-API-nya sudah
+  // ikut di paket. Hanya canvas + canvacord yang benar-benar butuh skrip.
+  cp.execFileSync(process.env.NPM_BIN || 'npm', ['install', '--no-audit', '--no-fund', '--ignore-scripts'], {
+    cwd: BOT_WA_DIR,
+    stdio: 'inherit',
+    timeout: 3600000,
+  });
+
+  log('bot-wa: menyiapkan modul native (canvas, canvacord)…');
+  try {
+    cp.execFileSync(process.env.NPM_BIN || 'npm', ['rebuild', 'canvas', 'canvacord', '--no-audit', '--no-fund'], {
+      cwd: BOT_WA_DIR,
+      stdio: 'inherit',
+      timeout: 1800000,
+    });
+  } catch (e) {
+    warn(`bot-wa: rebuild canvas/canvacord gagal (${e && e.message ? e.message : e}). Fitur gambar/sticker bisa error.`);
+  }
+  log('bot-wa: dependencies siap.');
+}
+
 function run(bin, args, opts = {}) {
   return cp.execFileSync(bin, args, {
     encoding: 'utf8',
@@ -576,6 +684,7 @@ async function setupFinapi() {
     ['cloudflared', setupCloudflared],
     ['gowa', setupGowa],
     ['finapi', setupFinapi],
+    ['bot-wa', setupBotWa],
   ];
   for (const [name, fn] of steps) {
     try {
