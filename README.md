@@ -6,8 +6,8 @@ Satu container menjalankan beberapa proses lewat PM2. Entry point: `start.sh`.
 
 | Proses PM2 | Fungsi | Syarat aktif |
 |---|---|---|
-| `n8n-s` | n8n mode biasa (default) | `N8N_QUEUE_MODE=off` |
-| `n8n-main` / `n8n-worker` / `n8n-webhook` | n8n queue mode | `N8N_QUEUE_MODE=on` |
+| `n8n-s` | n8n mode biasa (default) | `ENABLE_N8N=1` + `N8N_QUEUE_MODE=off` |
+| `n8n-main` / `n8n-worker` / `n8n-webhook` | n8n queue mode | `ENABLE_N8N=1` + `N8N_QUEUE_MODE=on` |
 | `gowa` | WhatsApp REST API | `ENABLE_GOWA=1` + `./bin/gowa` |
 | `redis` | Valkey/Redis lokal | `ENABLE_REDIS=1` + `./bin/redis-server` |
 | `vars-ui` | Panel edit `.env` + backup workflow | `ENABLE_VARS=1` |
@@ -16,7 +16,7 @@ Satu container menjalankan beberapa proses lewat PM2. Entry point: `start.sh`.
 
 ## Setup di panel
 
-1. Node.js **v24** (n8n 2.45.6 butuh `>=24.0.0`).
+1. Node.js **v22.16 atau lebih baru**. n8n dipasang kondisional (lihat bawah).
 2. Upload seluruh isi folder ini ke `/home/container` (atau `git clone`).
 3. CMD_RUN: **`npm start`** (bukan `npm install`). Panel menjalankan
    `/usr/local/bin/${CMD_RUN}`, jadi `npm start` valid dan `sh start.sh` tidak.
@@ -24,13 +24,40 @@ Satu container menjalankan beberapa proses lewat PM2. Entry point: `start.sh`.
    - membuat `.env` dari `.env.example` bila belum ada, dengan secret acak
      (`N8N_ENCRYPTION_KEY`, `REDIS_PASSWORD`, `VARUI_PASS`, `APP_BASIC_AUTH`,
      `SECRET_KEY` finapi) dan mencetak `VARUI_USER` / `VARUI_PASS` ke console;
+   - memasang `n8n` **hanya jika** `ENABLE_N8N=1`;
    - mengunduh `bin/gowa`, `bin/redis-server` (jika `ENABLE_REDIS=1`),
      `bin/cloudflared`;
    - menulis `redis/redis.conf`;
    - menyiapkan venv Python untuk `finapi`.
 
-Jika Node belum bisa v24, turunkan `n8n` di `package.json` ke `2.35.7`
-(butuh `>=22.22`). Jangan pakai seri 1.x: sudah tidak dipatch.
+## n8n opsional (Node v23 vs v24)
+
+`n8n` **tidak** ada di `dependencies` `package.json`. `postinstall.js` yang
+memutuskan, karena `npm install` tidak bisa membaca `.env` di tengah resolusi
+dependency.
+
+| `ENABLE_N8N` | Node | Hasil |
+|---|---|---|
+| `0` | apa pun | n8n tidak dipasang, `npm install` tidak menyentuh registry untuk n8n |
+| `1` | 22 / 23 | memasang `n8n@2.35.7` (`engines >=22.22`) |
+| `1` | 24+ | memasang `n8n@2.45.6` (`engines >=24.0.0`) |
+| `1` | < 22 | gagal dengan peringatan, n8n dilewati |
+
+Alur upgrade saat Node v24 disetujui penyewa:
+
+1. Ubah satu baris di `.env`: `ENABLE_N8N=0` → `ENABLE_N8N=1`.
+2. Minta panel memakai Node v24, lalu jalankan `npm install` sekali
+   (atau restart server, karena start panel menjalankan `npm install`).
+3. `postinstall.js` memasang `n8n@2.45.6` otomatis, `start.sh` ikut
+   menambahkan proses n8n ke PM2.
+
+Tidak perlu mengubah `package.json`.
+
+`start.sh` juga menjaga: kalau `ENABLE_N8N=1` tapi
+`./node_modules/.bin/n8n` tidak ada, proses n8n dilewati dengan peringatan,
+bukan membuat seluruh start gagal.
+
+Jangan pakai seri n8n 1.x: sudah tidak dipatch (CVE-2025-68613).
 
 ## File yang TIDAK masuk repo
 

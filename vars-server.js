@@ -119,10 +119,18 @@ function run(bin, args, opts = {}) {
 // Nama proses PM2 yang benar-benar jalan, mengikuti mode aktif.
 function activeProcessNames() {
   const overlay = buildEnvOverlayFromDotenv();
-  const queueOn = /^(on|1|true|yes)$/i.test(overlay.N8N_QUEUE_MODE || 'off');
-  const names = queueOn ? ['n8n-main', 'n8n-worker'] : ['n8n-s'];
-  if (overlay.ENABLE_N8N_WEBHOOK === '1') names.push('n8n-webhook');
+  const names = [];
+  if (overlay.ENABLE_N8N !== '0') {
+    const queueOn = /^(on|1|true|yes)$/i.test(overlay.N8N_QUEUE_MODE || 'off');
+    if (queueOn) {
+      names.push('n8n-main', 'n8n-worker');
+      if (overlay.ENABLE_N8N_WEBHOOK === '1') names.push('n8n-webhook');
+    } else {
+      names.push('n8n-s');
+    }
+  }
   if (overlay.ENABLE_GOWA === '1') names.push('gowa');
+  if (overlay.ENABLE_FINAPI === '1') names.push('finapi');
   names.push('vars-ui');
   return names;
 }

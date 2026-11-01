@@ -42,7 +42,8 @@ if [ -z "${ENABLE_N8N_WEBHOOK:-}" ]; then
 fi
 
 # Queue mode tanpa Redis = n8n gagal start. Paksa Redis ON dan beri peringatan.
-if [ "$QUEUE_ON" = "1" ] && [ "$ENABLE_REDIS" != "1" ]; then
+# Hanya relevan kalau n8n aktif.
+if [ "$QUEUE_ON" = "1" ] && [ "${ENABLE_N8N:-1}" != "0" ] && [ "$ENABLE_REDIS" != "1" ]; then
   log "[WARN] N8N_QUEUE_MODE=on butuh Redis. ENABLE_REDIS dipaksa 1."
   ENABLE_REDIS=1
   export ENABLE_REDIS
@@ -85,7 +86,16 @@ log "[PM2 ] version: $("$PM2" -v 2>/dev/null || echo unknown)"
 ########################################
 # 6) Tentukan app yang dijalankan
 ########################################
-CANDIDATES="n8n vars-ui"
+CANDIDATES="vars-ui"
+
+# n8n butuh binary hasil npm install (kondisional, lihat ENABLE_N8N)
+if [ -x ./node_modules/.bin/n8n ]; then
+  CANDIDATES="n8n $CANDIDATES"
+else
+  if [ "${ENABLE_N8N:-0}" = "1" ]; then
+    log "[WARN] n8n diaktifkan tapi ./node_modules/.bin/n8n tidak ada → skip (jalankan npm install, cek ENABLE_N8N dan versi Node)"
+  fi
+fi
 
 # gowa butuh binary hasil postinstall
 if [ -x ./bin/gowa ]; then

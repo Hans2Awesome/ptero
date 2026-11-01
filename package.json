@@ -1,16 +1,15 @@
 {
   "name": "n8n-gowa-onebox",
   "private": true,
-  "description": "n8n + GOWA + vars-ui bundle for a single container (Pterodactyl-style panel)",
+  "description": "n8n + GOWA + vars-ui + finapi bundle for a single container (Pterodactyl-style panel)",
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=22.16"
   },
   "scripts": {
     "postinstall": "node postinstall.js",
     "start": "sh start.sh"
   },
   "dependencies": {
-    "n8n": "2.45.6",
     "adm-zip": "^0.5.16",
     "pm2": "7.1.1",
     "express": "^4.21.2"

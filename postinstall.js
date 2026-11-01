@@ -91,6 +91,59 @@ function ensureEnvFiles() {
 }
 const BIN_DIR = path.join(ROOT, 'bin');
 
+// ============================================================
+// n8n — dipasang kondisional, karena npm install tidak bisa membaca .env.
+// ENABLE_N8N=0 → n8n tidak dipasang sama sekali.
+// ENABLE_N8N=1 → versi dipilih sesuai Node yang tersedia.
+// ============================================================
+const N8N_VERSIONS = {
+  node24: '2.45.6', // engines: >=24.0.0
+  node22: '2.35.7', // engines: >=22.22
+};
+
+function n8nVersionFor(nodeMajor) {
+  if (nodeMajor >= 24) return N8N_VERSIONS.node24;
+  if (nodeMajor >= 22) return N8N_VERSIONS.node22;
+  return null;
+}
+
+function setupN8n() {
+  const runApps = String(process.env.RUN_APPS || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const disabled = process.env.ENABLE_N8N === '0'
+    || (runApps.length > 0 && !runApps.includes('n8n'));
+
+  const bin = path.join(ROOT, 'node_modules', '.bin', 'n8n');
+
+  if (disabled) {
+    if (fs.existsSync(bin)) {
+      log('n8n disabled (ENABLE_N8N=0) — package lama dibiarkan, tidak dihapus.');
+    } else {
+      log('n8n disabled (ENABLE_N8N=0) — tidak dipasang.');
+    }
+    return;
+  }
+
+  if (fs.existsSync(bin)) {
+    log('n8n sudah terpasang di node_modules.');
+    return;
+  }
+
+  const major = parseInt(process.versions.node.split('.')[0], 10);
+  const version = n8nVersionFor(major);
+  if (!version) {
+    warn(`Node v${process.versions.node} terlalu lama untuk n8n (butuh >=22). Set ENABLE_N8N=0.`);
+    return;
+  }
+
+  log(`Memasang n8n@${version} (Node v${process.versions.node})…`);
+  cp.execFileSync(
+    process.env.NPM_BIN || 'npm',
+    ['install', `n8n@${version}`, '--no-save', '--no-audit', '--no-fund'],
+    { cwd: ROOT, stdio: 'inherit', timeout: 1200000 },
+  );
+  log('n8n siap.');
+}
+
 function downloadFollow(url, out, redirects = 0) {
   return new Promise((resolve, reject) => {
     if (redirects > 8) return reject(new Error('too many redirects'));
@@ -518,6 +571,7 @@ async function setupFinapi() {
   loadEnvIntoProcess(path.join(ROOT, 'vendor', 'finapi', '.env'));
 
   const steps = [
+    ['n8n', setupN8n],
     ['redis', setupRedis],
     ['cloudflared', setupCloudflared],
     ['gowa', setupGowa],
