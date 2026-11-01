@@ -67,14 +67,17 @@ export N8N_WEBHOOK_PORT="${N8N_WEBHOOK_PORT:-11101}"
 #     → tautkan dari HP → set BOT_WA_PAIR=0 → restart.
 ########################################
 if [ "${ENABLE_BOT_WA:-0}" = "1" ] && [ "${BOT_WA_PAIR:-0}" = "1" ]; then
-  if [ ! -f ./bot-wa/package.json ] || [ ! -d ./bot-wa/node_modules ]; then
-    log "[ERR ] BOT_WA_PAIR=1 tapi bot-wa belum siap. Upload ZIP bot ke bot-wa/ lalu jalankan npm install."
-    exit 1
+  # Siap = package.json ada dan npm install bot-wa pernah selesai.
+  # node_modules/.package-lock.json hanya ditulis npm setelah install sukses.
+  if [ ! -f ./bot-wa/package.json ] || [ ! -f ./bot-wa/node_modules/.package-lock.json ]; then
+    log "[WARN] BOT_WA_PAIR=1 diabaikan: bot-wa belum siap (ZIP belum diekstrak atau npm install belum selesai)."
+    log "[WARN] Upload ZIP ke bot-wa/, set ENABLE_BOT_WA=1, jalankan npm install, lalu ulangi."
+  else
+    log "[INFO] Mode pairing: console panel diserahkan ke bot-wa."
+    log "[INFO] Set BOT_WA_PAIR=0 setelah folder bot-wa/session/ berisi creds.json."
+    cd ./bot-wa
+    exec node index.js --pairing
   fi
-  log "[INFO] Mode pairing: console panel diserahkan ke bot-wa."
-  log "[INFO] Set BOT_WA_PAIR=0 setelah folder bot-wa/session/ berisi creds.json."
-  cd ./bot-wa
-  exec node index.js --pairing
 fi
 
 ########################################
@@ -143,8 +146,9 @@ else
 fi
 
 # bot-wa butuh hasil ekstrak ZIP + npm install di dalam bot-wa/
+# .package-lock.json = tanda npm install bot-wa selesai (bukan install separuh jalan)
 if [ "${ENABLE_BOT_WA:-0}" = "1" ]; then
-  if [ -f ./bot-wa/package.json ] && [ -d ./bot-wa/node_modules ]; then
+  if [ -f ./bot-wa/package.json ] && [ -f ./bot-wa/node_modules/.package-lock.json ]; then
     CANDIDATES="$CANDIDATES bot-wa"
   else
     log "[WARN] bot-wa diaktifkan tapi belum siap → skip (upload ZIP ke bot-wa/, lalu npm install)"

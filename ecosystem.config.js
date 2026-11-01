@@ -190,7 +190,7 @@ module.exports = {
     // postinstall sudah mengekstrak ZIP + memasang dependency.
     ...(process.env.ENABLE_BOT_WA === '1'
       && require('fs').existsSync(path.join(__dirname, 'bot-wa', 'package.json'))
-      && require('fs').existsSync(path.join(__dirname, 'bot-wa', 'node_modules'))
+      && require('fs').existsSync(path.join(__dirname, 'bot-wa', 'node_modules', '.package-lock.json'))
       && wants('bot-wa')
       ? [
           {

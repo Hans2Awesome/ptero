@@ -494,7 +494,7 @@ function setupBotWa() {
     return;
   }
 
-  if (fs.existsSync(path.join(BOT_WA_DIR, 'node_modules'))) {
+  if (fs.existsSync(path.join(BOT_WA_DIR, 'node_modules', '.package-lock.json'))) {
     log('bot-wa: dependencies sudah ada.');
     return;
   }
