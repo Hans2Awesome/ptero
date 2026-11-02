@@ -1,177 +1,1086 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Vars Hub — Env & Workflows</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root { --bg:#0b1020; --card:#121a33; --muted:#9fb0d6; --text:#eef3ff; --accent:#7aa2ff; --danger:#ff6b6b; --ok:#21c997; }
-    * { box-sizing:border-box; }
-    body { margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; background:linear-gradient(180deg,#0b1020,#0a0e1a); color:var(--text); }
-    header { padding:24px 16px; text-align:center; }
-    .wrap { max-width:1100px; margin:0 auto; padding:0 16px 40px; }
-    .toolbar { display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; margin-bottom:16px; }
-    .btn { appearance:none; border:none; background:var(--accent); color:#0b1020; padding:10px 14px; border-radius:10px; font-weight:600; cursor:pointer; }
-    .btn.secondary { background:#1e2a52; color:var(--text); }
-    .btn.danger { background:var(--danger); color:#fff; }
-    .btn:disabled { opacity:.6; cursor:not-allowed; }
-    .card { background:var(--card); border:1px solid #1d2a52; border-radius:16px; padding:16px; box-shadow:0 8px 30px rgba(0,0,0,.25); }
-    table { width:100%; border-collapse:separate; border-spacing:0 8px; }
-    th, td { padding:10px 12px; text-align:left; }
-    th { color:var(--muted); font-weight:600; font-size:14px; }
-    tr { background:#0f1730; border-radius:10px; }
-    tr td:first-child { border-top-left-radius:10px; border-bottom-left-radius:10px; }
-    tr td:last-child { border-top-right-radius:10px; border-bottom-right-radius:10px; }
-    input[type=text] { width:100%; background:#0c142a; border:1px solid #20305f; color:var(--text); padding:10px; border-radius:8px; }
-    .row-actions { display:flex; gap:8px; }
-    .pill { padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #243567; color:#bbcaf0; background:#0c142a; }
-    .toast { position:fixed; right:16px; bottom:16px; background:#101a36; border:1px solid #223468; padding:12px 14px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35); display:none; }
-    .toast.ok { border-color:#1f7a5d; }
-    .toast.err { border-color:#7a1f1f; }
-    .grid { display:grid; gap:16px; grid-template-columns:1fr; }
-    @media (min-width:950px) { .grid { grid-template-columns: 1.6fr .9fr; } }
-    .hint { font-size:12px; color:#8ea2d9; margin-top:8px; }
-    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0c142a; border:1px solid #213261; padding:2px 6px; border-radius:6px; }
-    .section-title { font-weight:600; margin-bottom:8px; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0a0c10" />
+<title>Vars Hub — Environment &amp; Workflows</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0c10'/%3E%3Cpath d='M9 11l4 10 4-10' stroke='%23c8f751' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M19 21V11m0 5h5m0-5v10' stroke='%239aa3b5' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg-soft: #0e1118;
+    --panel: #11141c;
+    --panel-2: #161a24;
+    --line: #1f2533;
+    --line-soft: #191e29;
+    --text: #e7eaf0;
+    --muted: #8d96a8;
+    --dim: #7b8598;
+    --accent: #c8f751;
+    --accent-ink: #0a0c10;
+    --danger: #ff8080;
+    --warn: #f5b544;
+    --ok: #58d68d;
+    --radius: 10px;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 380px at 15% -8%, rgba(200, 247, 81, .055), transparent 70%),
+      radial-gradient(700px 320px at 100% 0%, rgba(120, 160, 255, .05), transparent 70%);
+    z-index: 0;
+  }
+
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 8px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    z-index: 50;
+  }
+  .skip:focus { left: 12px; }
+
+  /* ---------- header ---------- */
+  header.bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(10, 12, 16, .82);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bar-in {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .mark {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    display: grid;
+    place-items: center;
+    font: 700 13px/1 var(--mono);
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+
+  .brand { min-width: 0; }
+  .brand h1 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: -.01em;
+    line-height: 1.25;
+  }
+  .brand p {
+    margin: 2px 0 0;
+    font: 12px/1.4 var(--mono);
+    color: var(--dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-spacer { flex: 1 1 auto; }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font: 12px/1 var(--mono);
+    color: var(--muted);
+    padding: 7px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel);
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dim);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, .03);
+  }
+  .dot.live { background: var(--ok); box-shadow: 0 0 0 3px rgba(88, 214, 141, .13); }
+  .dot.dead { background: var(--danger); box-shadow: 0 0 0 3px rgba(255, 128, 128, .13); }
+
+  /* ---------- layout ---------- */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 22px 20px 96px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .panel-head h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .panel-head .count {
+    font: 12px/1 var(--mono);
+    color: var(--dim);
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+  .panel-body { padding: 14px 16px 16px; }
+
+  /* ---------- controls ---------- */
+  .btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 13px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--text);
+    font: 500 13px/1 var(--sans);
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .14s ease, border-color .14s ease, color .14s ease;
+  }
+  .btn:hover { background: #1b2029; border-color: #2a3140; }
+  .btn:active { transform: translateY(.5px); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 650; }
+  .btn.primary:hover { background: #d4ff6a; border-color: #d4ff6a; }
+  .btn.ghost { background: transparent; }
+  .btn.warn { color: var(--warn); border-color: rgba(245, 181, 68, .35); background: rgba(245, 181, 68, .07); }
+  .btn.warn:hover { background: rgba(245, 181, 68, .13); border-color: rgba(245, 181, 68, .5); }
+  .btn.sm { height: 30px; padding: 0 10px; font-size: 12px; }
+  .btn.icon { width: 30px; height: 30px; padding: 0; }
+
+  :where(button, a, input, summary):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .toolbar .grow { flex: 1 1 220px; min-width: 0; }
+
+  .search {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search svg { position: absolute; left: 10px; color: var(--dim); pointer-events: none; }
+  .search input {
+    width: 100%;
+    height: 34px;
+    padding: 0 34px 0 32px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    color: var(--text);
+    font: 13px/1 var(--mono);
+  }
+  .search input::placeholder { color: var(--dim); font-family: var(--sans); }
+  .search input:focus { border-color: #35405a; }
+  .search kbd {
+    position: absolute;
+    right: 8px;
+    font: 11px/1 var(--mono);
+    color: var(--dim);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 3px 6px;
+    background: var(--panel-2);
+  }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    appearance: none;
+    height: 30px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    font: 500 12px/1 var(--sans);
+    cursor: pointer;
+  }
+  .chip:hover { color: var(--text); border-color: #2a3140; }
+  .chip[aria-pressed="true"] {
+    background: rgba(200, 247, 81, .1);
+    border-color: rgba(200, 247, 81, .4);
+    color: var(--accent);
+  }
+  .chip b { font-family: var(--mono); font-weight: 600; margin-left: 5px; opacity: .75; }
+
+  /* ---------- env rows ---------- */
+  .rows { display: grid; }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 16px;
+    border-top: 1px solid var(--line-soft);
+    transition: background .12s ease;
+  }
+  .row:first-child { border-top: 0; }
+  .row:hover { background: rgba(255, 255, 255, .015); }
+  .row.dirty { background: rgba(200, 247, 81, .035); box-shadow: inset 2px 0 0 var(--accent); }
+  .row.draft { background: rgba(120, 160, 255, .04); }
+
+  .row input[type="text"], .row input[type="password"] {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text);
+    font: 13px/1 var(--mono);
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .row input:hover { border-color: var(--line); }
+  .row input:focus {
+    background: var(--bg-soft);
+    border-color: #35405a;
+  }
+  .row input.key { color: var(--text); letter-spacing: .01em; }
+  .row input.val { color: #b9c2d4; }
+  .row.secret input.val { color: #9aa3b5; letter-spacing: .08em; }
+  .row input.key:read-only { color: var(--dim); cursor: default; }
+
+  .actions { display: flex; gap: 6px; align-items: center; }
+
+  .flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: 11px/1 var(--mono);
+    color: var(--accent);
+    padding: 3px 7px;
+    border-radius: 5px;
+    background: rgba(200, 247, 81, .1);
+  }
+
+  .empty {
+    padding: 40px 16px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 13px;
+  }
+  .empty strong { color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
+
+  /* ---------- workflow panel ---------- */
+  .wf-note {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--muted);
+    background: var(--bg-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+  .wf-note.warn { border-color: rgba(245, 181, 68, .28); background: rgba(245, 181, 68, .055); color: #e3c894; }
+  .wf-note code {
+    font: 12px var(--mono);
+    color: #c2cada;
+  }
+
+  .wf-actions { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+  .file-pick { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+  .file-name {
+    font: 12px/1 var(--mono);
+    color: var(--dim);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .check input { accent-color: var(--accent); width: 14px; height: 14px; }
+
+  /* ---------- sticky save bar ---------- */
+  .savebar {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translate(-50%, 140%);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px 10px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(200, 247, 81, .32);
+    background: rgba(18, 22, 15, .96);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .5);
+    transition: transform .22s cubic-bezier(.2, .8, .3, 1);
+    max-width: calc(100vw - 32px);
+  }
+  .savebar.show { transform: translate(-50%, 0); }
+  .savebar span { font-size: 13px; color: #cfd6c2; }
+  .savebar b { font-family: var(--mono); color: var(--accent); }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: min(420px, calc(100vw - 36px));
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, .45);
+    font-size: 13px;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.ok { border-color: rgba(88, 214, 141, .4); }
+  .toast.err { border-color: rgba(255, 128, 128, .45); }
+  .toast .mark-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex: 0 0 7px; }
+  .toast.err .mark-dot { background: var(--danger); }
+
+  /* ---------- dialog ---------- */
+  dialog {
+    width: min(440px, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+    color: var(--text);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .6);
+  }
+  dialog::backdrop { background: rgba(4, 6, 9, .68); backdrop-filter: blur(2px); }
+  dialog .dlg-body { padding: 18px 18px 6px; }
+  dialog h3 { margin: 0 0 8px; font-size: 15px; font-weight: 650; }
+  dialog p { margin: 0 0 12px; font-size: 13px; color: var(--muted); line-height: 1.55; }
+  dialog code {
+    font: 12.5px var(--mono);
+    color: var(--accent);
+    background: rgba(200, 247, 81, .08);
+    border-radius: 5px;
+    padding: 1px 5px;
+    overflow-wrap: anywhere;
+  }
+  dialog ul.procs { margin: 0 0 12px; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  dialog ul.procs li {
+    font: 12px/1 var(--mono);
+    padding: 5px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    color: var(--muted);
+  }
+  dialog .dlg-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 18px 16px;
+  }
+
+  @media (max-width: 760px) {
+    .bar-in { padding: 12px 14px; gap: 12px; }
+    .brand p { display: none; }
+    main { padding: 16px 14px 100px; }
+    .row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding: 12px 14px;
+    }
+    .row input[type="text"], .row input[type="password"] { background: var(--bg-soft); border-color: var(--line-soft); }
+    .actions { justify-content: flex-end; }
+    .row input.key { font-weight: 600; }
+    .savebar { bottom: 12px; left: 14px; right: 14px; transform: translateY(140%); max-width: none; }
+    .savebar.show { transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1 style="margin:0; font-size:28px; letter-spacing:.3px;">Vars Hub</h1>
-    <div style="opacity:.85; font-size:14px;">Kelola <span class="pill">.env</span> & backup/restore <span class="pill">n8n workflows</span></div>
-  </header>
-  <div class="wrap">
-    <div class="grid">
-      <div class="card">
-        <div class="toolbar">
-          <div style="display:flex; gap:8px; align-items:center;">
-            <button id="btn-add" class="btn secondary">+ Tambah Variable</button>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <a class="btn secondary" href="/api/env/download">Backup .env</a>
-            <button id="btn-restart" class="btn">Restart Server</button>
-          </div>
+<a class="skip" href="#env">Lewati ke daftar variabel</a>
+
+<header class="bar">
+  <div class="bar-in">
+    <div class="mark" aria-hidden="true">VH</div>
+    <div class="brand">
+      <h1>Vars Hub</h1>
+      <p id="env-path">.env</p>
+    </div>
+    <div class="bar-spacer"></div>
+    <span class="status" title="Status koneksi ke server vars-ui">
+      <span class="dot" id="conn-dot" aria-hidden="true"></span>
+      <span id="conn-text">menghubungkan</span>
+    </span>
+  </div>
+</header>
+
+<main>
+  <section class="panel" id="env" aria-labelledby="env-title">
+    <div class="panel-head">
+      <h2 id="env-title">Environment</h2>
+      <span class="count" id="env-count">0 variabel</span>
+      <div class="bar-spacer"></div>
+      <a class="btn sm ghost" href="/api/env/download">Unduh .env</a>
+    </div>
+
+    <div class="toolbar">
+      <div class="grow">
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+            <path d="m16.5 16.5 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <input id="search" type="text" placeholder="Cari key atau value" autocomplete="off" aria-label="Cari variabel" />
+          <kbd>/</kbd>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th style="width:30%;">Key</th>
-              <th>Value</th>
-              <th style="width:180px;">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-        <div class="hint">Aturan key: hanya huruf, angka, dan underscore (<span class="kbd">[A-Z0-9_]</span>).</div>
       </div>
-      <div class="card">
-        <div class="section-title">Backup & Restore Workflows n8n</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-          <a id="btn-backup-wf" class="btn" href="/api/workflows/backup">Backup Workflows (.json)</a>
-          <label class="btn secondary" for="file-restore">Pilih File JSON</label>
-          <input id="file-restore" type="file" accept=".json,application/json" style="display:none;">
-          <button id="btn-restore" class="btn">Restore</button>
-          <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:#b5c5ee;">
-            <input id="chk-overwrite" type="checkbox"> overwrite
-          </label>
-        </div>
-        <div class="hint">Backup hanya berisi workflows (tanpa credentials). Untuk menghindari duplikasi, centang <b>overwrite</b> saat restore.</div>
+      <div class="chips" role="group" aria-label="Filter variabel">
+        <button class="chip" data-filter="all" aria-pressed="true">Semua</button>
+        <button class="chip" data-filter="changed" aria-pressed="false">Berubah <b id="n-changed">0</b></button>
+        <button class="chip" data-filter="secret" aria-pressed="false">Rahasia <b id="n-secret">0</b></button>
+        <button class="chip" data-filter="empty" aria-pressed="false">Kosong <b id="n-empty">0</b></button>
+      </div>
+      <button class="btn sm" id="btn-add">+ Variabel</button>
+    </div>
+
+    <div class="rows" id="rows"></div>
+
+    <div class="panel-body" style="border-top:1px solid var(--line-soft)">
+      <p style="margin:0;font-size:12px;color:var(--dim)">
+        Key hanya huruf, angka, dan underscore, diawali huruf atau underscore.
+        <span style="color:var(--muted)">Ctrl/Cmd+S</span> menyimpan semua perubahan.
+      </p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="wf-title">
+    <div class="panel-head">
+      <h2 id="wf-title">Workflows n8n</h2>
+      <div class="bar-spacer"></div>
+      <span class="count" id="wf-state">memeriksa</span>
+    </div>
+    <div class="panel-body">
+      <div class="wf-note" id="wf-note">
+        Backup berisi workflow saja, tanpa credentials.
+      </div>
+      <div class="wf-actions">
+        <a class="btn sm" id="btn-backup-wf" href="/api/workflows/backup">Backup .json</a>
+        <span class="file-pick">
+          <label class="btn sm ghost" for="file-restore">Pilih file</label>
+          <input id="file-restore" type="file" accept=".json,application/json" hidden />
+          <span class="file-name" id="file-name">belum ada file</span>
+        </span>
+        <button class="btn sm primary" id="btn-restore" disabled>Restore</button>
+        <label class="check">
+          <input id="chk-overwrite" type="checkbox" /> overwrite
+        </label>
       </div>
     </div>
+  </section>
+
+  <section class="panel" aria-labelledby="ops-title">
+    <div class="panel-head">
+      <h2 id="ops-title">Operasional</h2>
+    </div>
+    <div class="panel-body">
+      <div class="wf-actions">
+        <button class="btn sm warn" id="btn-restart">Restart proses</button>
+        <span style="font-size:12.5px;color:var(--dim)">
+          Reload bergantian lewat PM2 dengan isi <code style="font-family:var(--mono)">.env</code> terbaru.
+        </span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="savebar" id="savebar" role="region" aria-label="Perubahan belum disimpan">
+  <span><b id="save-count">0</b> perubahan belum disimpan</span>
+  <button class="btn sm ghost" id="btn-discard">Batalkan</button>
+  <button class="btn sm primary" id="btn-save-all">Simpan semua</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="mark-dot" aria-hidden="true"></span>
+  <span id="toast-text"></span>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg-body">
+    <h3 id="dlg-title">Konfirmasi</h3>
+    <div id="dlg-extra"></div>
+    <p id="dlg-text"></p>
   </div>
+  <div class="dlg-foot">
+    <button class="btn sm ghost" id="dlg-cancel" value="cancel">Batal</button>
+    <button class="btn sm primary" id="dlg-ok" value="ok">Lanjut</button>
+  </div>
+</dialog>
 
-  <div id="toast" class="toast"></div>
+<script>
+(function () {
+  'use strict';
 
-  <script>
-    const rows = document.getElementById('rows');
-    const toast = document.getElementById('toast');
-    const fileRestore = document.getElementById('file-restore');
-    const chkOverwrite = document.getElementById('chk-overwrite');
+  var rowsEl = document.getElementById('rows');
+  var searchEl = document.getElementById('search');
+  var countEl = document.getElementById('env-count');
+  var savebar = document.getElementById('savebar');
+  var saveCountEl = document.getElementById('save-count');
+  var toastEl = document.getElementById('toast');
+  var toastText = document.getElementById('toast-text');
+  var dlg = document.getElementById('dlg');
+  var dlgTitle = document.getElementById('dlg-title');
+  var dlgText = document.getElementById('dlg-text');
+  var dlgExtra = document.getElementById('dlg-extra');
+  var dlgOk = document.getElementById('dlg-ok');
+  var dlgCancel = document.getElementById('dlg-cancel');
+  var fileRestore = document.getElementById('file-restore');
+  var fileName = document.getElementById('file-name');
+  var chkOverwrite = document.getElementById('chk-overwrite');
+  var restoreBtn = document.getElementById('btn-restore');
 
-    function showToast(msg, ok=true) {
-      toast.textContent = msg;
-      toast.className = 'toast ' + (ok ? 'ok' : 'err');
-      toast.style.display = 'block';
-      setTimeout(()=> toast.style.display='none', 3000);
+  var SECRET_RE = /(SECRET|PASS|TOKEN|KEY|AUTH|CREDENTIAL|PRIVATE|DSN|SALT)/i;
+  var KEY_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+  var state = { items: [], filter: 'all', query: '', revealed: new Set(), dirty: new Set(), loaded: false };
+  var restoreContent = null;
+  var toastTimer = null;
+
+  /* ---------- helpers ---------- */
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function toast(msg, ok) {
+    toastText.textContent = msg;
+    toastEl.className = 'toast show ' + (ok === false ? 'err' : 'ok');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.className = 'toast ' + (ok === false ? 'err' : 'ok'); }, 3600);
+  }
+
+  function setConn(ok, text) {
+    var dot = document.getElementById('conn-dot');
+    dot.className = 'dot ' + (ok ? 'live' : 'dead');
+    document.getElementById('conn-text').textContent = text;
+  }
+
+  function isSecret(key) { return SECRET_RE.test(key || ''); }
+
+  function allItems() { return state.items; }
+
+  function findItem(key) {
+    for (var i = 0; i < state.items.length; i++) if (state.items[i].key === key) return state.items[i];
+    return null;
+  }
+
+  /* ---------- dialog ---------- */
+  var dlgResolve = null;
+
+  function confirmDialog(opts) {
+    dlgTitle.textContent = opts.title;
+    dlgText.innerHTML = opts.text || '';
+    dlgExtra.innerHTML = opts.extra || '';
+    dlgOk.textContent = opts.okLabel || 'Lanjut';
+    dlgOk.className = 'btn sm ' + (opts.danger ? 'warn' : 'primary');
+    dlg.showModal();
+    return new Promise(function (resolve) { dlgResolve = resolve; });
+  }
+
+  function closeDialog(result) {
+    if (dlg.open) dlg.close();
+    if (dlgResolve) { dlgResolve(result); dlgResolve = null; }
+  }
+
+  dlgOk.addEventListener('click', function () { closeDialog(true); });
+  dlgCancel.addEventListener('click', function () { closeDialog(false); });
+  dlg.addEventListener('cancel', function (e) { e.preventDefault(); closeDialog(false); });
+
+  /* ---------- rendering ---------- */
+  function matchesFilter(item) {
+    var f = state.filter;
+    if (f === 'changed') return state.dirty.has(item.key);
+    if (f === 'secret') return isSecret(item.key);
+    if (f === 'empty') return item.value === '';
+    return true;
+  }
+
+  function matchesQuery(item) {
+    if (!state.query) return true;
+    var q = state.query.toLowerCase();
+    return item.key.toLowerCase().indexOf(q) >= 0 || String(item.value).toLowerCase().indexOf(q) >= 0;
+  }
+
+  function updateCounts() {
+    var nChanged = 0, nSecret = 0, nEmpty = 0;
+    state.items.forEach(function (it) {
+      if (state.dirty.has(it.key)) nChanged++;
+      if (isSecret(it.key)) nSecret++;
+      if (it.value === '') nEmpty++;
+    });
+    document.getElementById('n-changed').textContent = nChanged;
+    document.getElementById('n-secret').textContent = nSecret;
+    document.getElementById('n-empty').textContent = nEmpty;
+    saveCountEl.textContent = nChanged;
+    savebar.classList.toggle('show', nChanged > 0);
+    countEl.textContent = state.items.length + ' variabel';
+  }
+
+  function rowNode(item) {
+    var secret = isSecret(item.key);
+    var row = document.createElement('div');
+    row.className = 'row' + (secret ? ' secret' : '') + (state.dirty.has(item.key) ? ' dirty' : '');
+    row.dataset.key = item.key;
+
+    var keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.className = 'key';
+    keyInput.value = item.key;
+    keyInput.placeholder = 'KEY_NAME';
+    keyInput.spellcheck = false;
+    keyInput.setAttribute('aria-label', 'Key ' + (item.key || 'baru'));
+
+    var valInput = document.createElement('input');
+    var revealed = state.revealed.has(item.key) || !secret;
+    valInput.type = revealed ? 'text' : 'password';
+    valInput.className = 'val';
+    valInput.value = item.value;
+    valInput.placeholder = 'value';
+    valInput.spellcheck = false;
+    valInput.autocomplete = 'off';
+    valInput.setAttribute('aria-label', 'Value ' + (item.key || 'baru'));
+
+    var actions = document.createElement('div');
+    actions.className = 'actions';
+
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'btn sm ghost';
+    saveBtn.textContent = 'Simpan';
+    saveBtn.addEventListener('click', function () { saveRow(item).then(refresh); });
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'btn sm icon ghost';
+    delBtn.type = 'button';
+    delBtn.title = 'Hapus ' + item.key;
+    delBtn.setAttribute('aria-label', 'Hapus ' + item.key);
+    delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    delBtn.addEventListener('click', function () {
+      confirmDialog({
+        title: 'Hapus variabel?',
+        text: 'Variabel <code>' + esc(item.key) + '</code> akan dihapus dari <code>.env</code>. Tindakan ini langsung ditulis ke file, tidak bisa dibatalkan lewat halaman ini.',
+        okLabel: 'Hapus',
+        danger: true
+      }).then(function (yes) {
+        if (!yes) return;
+        fetch('/api/env/' + encodeURIComponent(item.key), { method: 'DELETE' })
+          .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)); })
+          .then(function () { state.dirty.delete(item.key); toast('Dihapus: ' + item.key, true); refresh(); })
+          .catch(function (e) { toast('Gagal hapus: ' + e.message, false); });
+      });
+    });
+
+    if (secret) {
+      var eye = document.createElement('button');
+      eye.className = 'btn sm icon ghost';
+      eye.type = 'button';
+      eye.title = revealed ? 'Sembunyikan value' : 'Tampilkan value';
+      eye.setAttribute('aria-label', eye.title);
+      eye.setAttribute('aria-pressed', String(revealed));
+      eye.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.7"/></svg>';
+      eye.addEventListener('click', function () {
+        if (state.revealed.has(item.key)) state.revealed.delete(item.key);
+        else state.revealed.add(item.key);
+        var nowRevealed = state.revealed.has(item.key);
+        valInput.type = nowRevealed ? 'text' : 'password';
+        eye.setAttribute('aria-pressed', String(nowRevealed));
+        eye.title = nowRevealed ? 'Sembunyikan value' : 'Tampilkan value';
+        eye.setAttribute('aria-label', eye.title);
+      });
+      actions.appendChild(eye);
     }
 
-    function esc(v) {
-      return String(v ?? '').replace(/[&<>"']/g, (c) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      })[c]);
+    actions.appendChild(saveBtn);
+    actions.appendChild(delBtn);
+
+    row.appendChild(keyInput);
+    row.appendChild(valInput);
+    row.appendChild(actions);
+
+    function markDirty() {
+      var changed = keyInput.value !== item.key || valInput.value !== item.value;
+      if (changed || item.draft) state.dirty.add(item.key);
+      else state.dirty.delete(item.key);
+      row.classList.toggle('dirty', state.dirty.has(item.key));
+      updateCounts();
     }
 
-    function rowTpl(item) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><input type="text" class="inp-key" value="${esc(item.key)}" placeholder="KEY"/></td>
-        <td><input type="text" class="inp-val" value="${esc(item.value)}" placeholder="value"/></td>
-        <td class="row-actions">
-          <button class="btn secondary btn-save">Simpan</button>
-          <button class="btn danger btn-del">Hapus</button>
-        </td>`;
-      const keyEl = tr.querySelector('.inp-key');
-      const valEl = tr.querySelector('.inp-val');
-      tr.querySelector('.btn-save').onclick = async () => {
-        const key = keyEl.value.trim();
-        const value = valEl.value;
-        if (!key) return showToast('Key kosong.', false);
-        const method = item.key ? 'PUT' : 'POST';
-        const url = item.key ? `/api/env/${encodeURIComponent(item.key)}` : '/api/env';
-        const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify({ key, value }) });
-        if (res.ok) { showToast('Tersimpan.'); load(); } else { const d = await res.json().catch(()=>({})); showToast(d.error||'Gagal simpan', false); }
-      };
-      tr.querySelector('.btn-del').onclick = async () => {
-        if (!item.key) { tr.remove(); return; }
-        if (!confirm(`Hapus variable "${item.key}"?`)) return;
-        const res = await fetch(`/api/env/${encodeURIComponent(item.key)}`, { method:'DELETE' });
-        if (res.ok) { showToast('Dihapus.'); load(); } else { showToast('Gagal hapus', false); }
-      };
-      return tr;
+    keyInput.addEventListener('input', markDirty);
+    valInput.addEventListener('input', markDirty);
+    row.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveRow(item).then(refresh);
+      }
+    });
+
+    item._keyInput = keyInput;
+    item._valInput = valInput;
+
+    return row;
+  }
+
+  function render() {
+    rowsEl.innerHTML = '';
+    var visible = state.items.filter(function (it) { return matchesFilter(it) && matchesQuery(it); });
+
+    if (!state.loaded) {
+      rowsEl.innerHTML = '<div class="empty">Memuat .env…</div>';
+      return;
+    }
+    if (!visible.length) {
+      rowsEl.innerHTML = '<div class="empty"><strong>Tidak ada variabel yang cocok</strong>' +
+        (state.items.length ? 'Ubah kata kunci atau filter.' : 'Tambahkan variabel pertama.') + '</div>';
+      return;
+    }
+    var frag = document.createDocumentFragment();
+    visible.forEach(function (it) { frag.appendChild(rowNode(it)); });
+    rowsEl.appendChild(frag);
+  }
+
+  /* ---------- data ---------- */
+  function load() {
+    return fetch('/api/env', { headers: { Accept: 'application/json' } })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        state.items = (data.items || []).map(function (it) {
+          return { key: it.key, value: it.value };
+        });
+        state.dirty.clear();
+        state.loaded = true;
+        setConn(true, 'terhubung');
+        render();
+        updateCounts();
+      })
+      .catch(function (e) {
+        state.loaded = true;
+        setConn(false, 'gagal');
+        rowsEl.innerHTML = '<div class="empty"><strong>Tidak bisa memuat .env</strong>' + esc(e.message) + '</div>';
+      });
+  }
+
+  function refresh() { return load().then(detectN8n); }
+
+  function saveRow(item) {
+    var keyInput = item._keyInput;
+    var valInput = item._valInput;
+    var key = (keyInput ? keyInput.value : item.key).trim();
+    var value = valInput ? valInput.value : item.value;
+
+    if (!KEY_RE.test(key)) {
+      toast('Key tidak valid: ' + key, false);
+      if (keyInput) keyInput.focus();
+      return Promise.resolve(false);
     }
 
-    async function load() {
-      rows.innerHTML = '';
-      const res = await fetch('/api/env');
-      if (!res.ok) return showToast('Gagal memuat .env', false);
-      const data = await res.json();
-      (data.items || []).forEach(it => rows.appendChild(rowTpl(it)));
+    var isNew = !item.key;
+    var url = isNew ? '/api/env' : '/api/env/' + encodeURIComponent(item.key);
+    var method = isNew ? 'POST' : 'PUT';
+
+    return fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: key, value: value })
+    })
+      .then(function (r) {
+        if (!r.ok) return r.json().catch(function () { return {}; }).then(function (d) {
+          throw new Error(d.error || ('HTTP ' + r.status));
+        });
+        toast(isNew ? 'Ditambahkan: ' + key : 'Tersimpan: ' + key, true);
+        return true;
+      })
+      .catch(function (e) {
+        toast('Gagal simpan: ' + e.message, false);
+        return false;
+      });
+  }
+
+  function saveAll() {
+    var targets = state.items.filter(function (it) { return state.dirty.has(it.key); });
+    if (!targets.length) return Promise.resolve();
+    var chain = Promise.resolve(), okCount = 0, failCount = 0;
+    targets.forEach(function (it) {
+      chain = chain.then(function () {
+        return saveRow(it).then(function (ok) { if (ok) okCount++; else failCount++; });
+      });
+    });
+    return chain.then(function () {
+      toast(okCount + ' tersimpan' + (failCount ? ', ' + failCount + ' gagal' : ''), failCount === 0);
+      return refresh();
+    });
+  }
+
+  /* mirror of activeProcessNames() in vars-server.js — read only */
+  function activeProcesses(env) {
+    var names = [];
+    var get = function (k) { return env[k] == null ? '' : env[k]; };
+    if (get('ENABLE_N8N') !== '0') {
+      var queueOn = /^(on|1|true|yes)$/i.test(get('N8N_QUEUE_MODE') || 'off');
+      if (queueOn) {
+        names.push('n8n-main', 'n8n-worker');
+        if (get('ENABLE_N8N_WEBHOOK') === '1') names.push('n8n-webhook');
+      } else {
+        names.push('n8n-s');
+      }
     }
+    if (get('ENABLE_GOWA') === '1') names.push('gowa');
+    if (get('ENABLE_FINAPI') === '1') names.push('finapi');
+    if (get('ENABLE_BOT_WA') === '1') names.push('bot-wa');
+    names.push('vars-ui');
+    return names;
+  }
 
-    document.getElementById('btn-add').onclick = () => {
-      rows.prepend(rowTpl({ key:'', value:'' }));
-    };
+  function envMap() {
+    var m = {};
+    state.items.forEach(function (it) { m[it.key] = it.value; });
+    return m;
+  }
 
-    document.getElementById('btn-restart').onclick = async () => {
-      if (!confirm('Restart semua proses sekarang?')) return;
-      const res = await fetch('/api/restart', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ target:'all' }) });
-      if (res.ok) { showToast('Restart dikirim.'); } else { const d = await res.json().catch(()=>({})); showToast(d.error || 'Gagal restart', false); }
-    };
+  function detectN8n() {
+    var env = envMap();
+    var badge = document.getElementById('wf-state');
+    var note = document.getElementById('wf-note');
+    if (env.ENABLE_N8N === '0') {
+      badge.textContent = 'nonaktif';
+      note.className = 'wf-note warn';
+      note.innerHTML = 'n8n dimatikan (<code>ENABLE_N8N=0</code>). Backup dan restore akan gagal sampai layanan dinyalakan.';
+      document.getElementById('btn-backup-wf').setAttribute('aria-disabled', 'true');
+      return;
+    }
+    badge.textContent = 'aktif';
+    note.className = 'wf-note';
+    note.innerHTML = 'Backup berisi workflow saja, tanpa credentials. Centang <b>overwrite</b> saat restore agar tidak duplikat.';
+  }
 
-    // ==== Workflows backup/restore ====
-    let restoreContent = null;
-    document.getElementById('btn-backup-wf').onclick = () => {
-      // anchor already has href; browser will download
-    };
-    fileRestore.onchange = async (e) => {
-      const f = e.target.files[0];
-      if (!f) { restoreContent = null; return; }
-      const text = await f.text();
+  /* ---------- events ---------- */
+  document.getElementById('btn-add').addEventListener('click', function () {
+    var key = '';
+    var n = 1;
+    while (findItem('NEW_KEY' + (n === 1 ? '' : n))) n++;
+    key = 'NEW_KEY' + (n === 1 ? '' : n);
+
+    state.items.unshift({ key: key, value: '', draft: true });
+    state.dirty.add(key);
+    state.filter = 'all';
+    state.query = '';
+    searchEl.value = '';
+    document.querySelectorAll('.chip').forEach(function (c) { c.setAttribute('aria-pressed', String(c.dataset.filter === 'all')); });
+    render();
+    updateCounts();
+    var first = rowsEl.querySelector('.row input.key');
+    if (first) { first.focus(); first.select(); }
+    toast('Baris baru ditambahkan. Isi key lalu simpan.', true);
+  });
+
+  document.querySelectorAll('.chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      state.filter = chip.dataset.filter;
+      document.querySelectorAll('.chip').forEach(function (c) {
+        c.setAttribute('aria-pressed', String(c === chip));
+      });
+      render();
+    });
+  });
+
+  searchEl.addEventListener('input', function () {
+    state.query = searchEl.value.trim();
+    render();
+  });
+
+  document.getElementById('btn-save-all').addEventListener('click', function () { saveAll(); });
+  document.getElementById('btn-discard').addEventListener('click', function () {
+    state.dirty.clear();
+    refresh();
+    toast('Perubahan dibatalkan.', true);
+  });
+
+  document.getElementById('btn-restart').addEventListener('click', function () {
+    var procs = activeProcesses(envMap());
+    confirmDialog({
+      title: 'Restart proses?',
+      text: 'PM2 akan me-reload proses berikut satu per satu. Bot WhatsApp tetap memakai session tersimpan, jadi tidak perlu pairing ulang.',
+      extra: '<ul class="procs">' + procs.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>',
+      okLabel: 'Restart'
+    }).then(function (yes) {
+      if (!yes) return;
+      fetch('/api/restart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target: 'all' })
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          toast('Restart dikirim. Pantau console panel.', true);
+        })
+        .catch(function (e) { toast('Gagal restart: ' + e.message, false); });
+    });
+  });
+
+  fileRestore.addEventListener('change', function () {
+    var f = fileRestore.files && fileRestore.files[0];
+    if (!f) {
+      restoreContent = null;
+      fileName.textContent = 'belum ada file';
+      restoreBtn.disabled = true;
+      return;
+    }
+    f.text().then(function (text) {
       restoreContent = text;
-      showToast(`File siap: ${f.name}`);
-    };
-    document.getElementById('btn-restore').onclick = async () => {
-      if (!restoreContent) return showToast('Pilih file JSON backup dulu.', false);
-      if (!confirm('Import workflows sekarang?')) return;
-      const qs = chkOverwrite.checked ? '?overwrite=true' : '';
-      const res = await fetch('/api/workflows/restore'+qs, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ content: restoreContent }) });
-      if (res.ok) { showToast('Restore berhasil.'); } else { const d = await res.json().catch(()=>({})); showToast(d.error || 'Gagal restore', false); }
-    };
+      fileName.textContent = f.name;
+      restoreBtn.disabled = false;
+      toast('File siap: ' + f.name, true);
+    });
+  });
 
-    load();
-  </script>
+  restoreBtn.addEventListener('click', function () {
+    if (!restoreContent) { toast('Pilih file JSON dulu.', false); return; }
+    var ow = chkOverwrite.checked;
+    confirmDialog({
+      title: 'Restore workflows?',
+      text: 'Isi file akan diimpor ke n8n' + (ow ? ' dengan mode <code>overwrite</code>.' : ' sebagai workflow baru.'),
+      okLabel: 'Restore'
+    }).then(function (yes) {
+      if (!yes) return;
+      fetch('/api/workflows/restore' + (ow ? '?overwrite=true' : ''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: restoreContent })
+      })
+        .then(function (r) {
+          if (!r.ok) return r.json().catch(function () { return {}; }).then(function (d) { throw new Error(d.error || ('HTTP ' + r.status)); });
+          toast('Restore berhasil.', true);
+        })
+        .catch(function (e) { toast('Gagal restore: ' + e.message, false); });
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target && e.target.tagName) || '';
+    var typing = tag === 'INPUT' || tag === 'TEXTAREA';
+    if (e.key === '/' && !typing) {
+      e.preventDefault();
+      searchEl.focus();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      if (state.dirty.size) saveAll();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchEl) {
+      searchEl.value = '';
+      state.query = '';
+      render();
+      searchEl.blur();
+    }
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (state.dirty.size) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  document.getElementById('env-path').textContent = 'root .env • ' + location.host;
+  load().then(detectN8n);
+})();
+</script>
 </body>
 </html>
