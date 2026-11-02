@@ -135,10 +135,10 @@ Cara kerja:
 
 Port default `11011` (internal, `127.0.0.1`). Tunnel di Cloudflare harus menunjuk
 `http://localhost:11011`. Contoh yang dipakai:
-`api.finindv.nikahbos.web.id -> http://localhost:11011`.
+`api-finindv.nikahbos.web.id -> http://localhost:11011`.
 
 Aplikasi mobile (APK) memakai base URL:
-`https://api.finindv.nikahbos.web.id`
+`https://api-finindv.nikahbos.web.id`
 
 ## Bot WhatsApp (`bot-wa/`)
 
@@ -224,7 +224,7 @@ Catatan:
   di panel, atau lewat variabel `CLOUDFLARE_TOKEN` dari panel.
 - `cf-tunnel` hanya jalan kalau `CLOUDFLARE_TOKEN` terisi **dan**
   `bin/cloudflared` ada (diunduh postinstall.js).
-- Semua hostname tunnel memakai satu token. Kalau `api.finindv.nikahbos.web.id`
+- Semua hostname tunnel memakai satu token. Kalau `api-finindv.nikahbos.web.id`
   dibuat di tunnel yang sama dengan `n8n.zieghart.web.id`, cukup satu token.
 
 ## Verifikasi finapi
